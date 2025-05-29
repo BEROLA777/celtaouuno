@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quer namorar comigo?</title>
+<style>
+  body, html {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    user-select: none;
+  }
+  h1 {
+    font-size: 3rem;
+    margin-bottom: 40px;
+  }
+  #buttons {
+    position: relative;
+    width: 300px;
+    display: flex;
+    justify-content: space-around;
+  }
+  button {
+    font-size: 1.5rem;
+    padding: 15px 40px;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    background-color: #4CAF50;
+    color: white;
+    transition: background-color 0.3s;
+    position: relative;
+  }
+  button#no {
+    background-color: #f44336;
+    position: absolute;
+    top: 0;
+    left: 150px;
+  }
+  button:hover {
+    background-color: #45a049;
+  }
+  button#no:hover {
+    background-color: #e53935;
+  }
+  #fireworksCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    background: black;
+    z-index: 9999;
+  }
+</style>
+</head>
+<body>
+  <h1>Quer namorar comigo?</h1>
+  <div id="buttons">
+    <button id="yes">Sim</button>
+    <button id="no">Não</button>
+  </div>
+
+  <canvas id="fireworksCanvas"></canvas>
+
+<script>
+  const noBtn = document.getElementById('no');
+  const yesBtn = document.getElementById('yes');
+  const buttonsDiv = document.getElementById('buttons');
+  const fireworksCanvas = document.getElementById('fireworksCanvas');
+  const ctx = fireworksCanvas.getContext('2d');
+
+  // Função para posicionar botão "Não" aleatoriamente dentro da viewport
+  function moveNoButton() {
+    const padding = 20; // distância das bordas
+    const btnWidth = noBtn.offsetWidth;
+    const btnHeight = noBtn.offsetHeight;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // calcular posição aleatória, sem sair da tela
+    const maxX = vw - btnWidth - padding;
+    const maxY = vh - btnHeight - padding;
+
+    // Evitar sobrepor ao botão "Sim"
+    // Para simplificar, vamos apenas colocar em qualquer lugar da tela
+    const randomX = Math.floor(Math.random() * maxX);
+    const randomY = Math.floor(Math.random() * maxY);
+
+    noBtn.style.position = 'fixed';
+    noBtn.style.left = randomX + 'px';
+    noBtn.style.top = randomY + 'px';
+  }
+
+  noBtn.addEventListener('mouseenter', () => {
+    // Ao tentar clicar, ele some e reaparece em outro lugar
+    moveNoButton();
+  });
+
+  // Função para ativar fogos de artifício
+  function startFireworks() {
+    // Esconde os elementos originais
+    document.body.innerHTML = '';
+    fireworksCanvas.style.display = 'block';
+
+    // Ajustar canvas ao tamanho da janela
+    fireworksCanvas.width = window.innerWidth;
+    fireworksCanvas.height = window.innerHeight;
+
+    // Código simples de fogos de artifício baseado em partículas
+
+    const particles = [];
+
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.radius = 3 + Math.random() * 2;
+        this.alpha = 1;
+        this.speedX = (Math.random() - 0.5) * 6;
+        this.speedY = (Math.random() - 0.5) * 6;
+        this.gravity = 0.05;
+      }
+      update() {
+        this.speedY += this.gravity;
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.alpha -= 0.015;
+        if (this.alpha < 0) this.alpha = 0;
+      }
+      draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function randomColor() {
+      const colors = ['#ff0043', '#14fc56', '#1e90ff', '#ffbf00', '#ff66ff', '#00ffff'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function createFirework() {
+      const x = Math.random() * fireworksCanvas.width;
+      const y = Math.random() * fireworksCanvas.height / 2;
+      for (let i = 0; i < 30; i++) {
+        particles.push(new Particle(x, y, randomColor()));
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.update();
+        p.draw(ctx);
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+
+      if (particles.length < 100) {
+        createFirework();
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  }
+
+  yesBtn.addEventListener('click', () => {
+    startFireworks();
+  });
+
+  // Inicialmente posicionar botão "Não" no lugar certo
+  window.onload = () => {
+    noBtn.style.position = 'fixed';
+    noBtn.style.left = '60%';
+    noBtn.style.top = '50%';
+  };
+
+  // Atualiza posição do botão "Não" quando redimensionar
+  window.addEventListener('resize', () => {
+    moveNoButton();
+  });
+</script>
+
+</body>
+</html>
